@@ -1,6 +1,4 @@
 from django.shortcuts import render
-
-# Create your views here.
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -52,8 +50,13 @@ class LogoutAPIView(APIView):
             if refresh_token:
                 token = RefreshToken(refresh_token)
                 jti = token.get('jti')
-                BlacklistedToken.objects.create(token=token)
+                outstanding_token = OutstandingToken.objects.get(token=refresh_token, jti=jti)
+                BlacklistedToken.objects.create(token=outstanding_token)
                 return Response({'message': 'Successfully logged out'}, status=status.HTTP_205_RESET_CONTENT)
             return Response({'error': 'Refresh token is required'}, status=status.HTTP_400_BAD_REQUEST)
         except TokenError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except OutstandingToken.DoesNotExist:
+            return Response({'error': 'Invalid refresh token'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
