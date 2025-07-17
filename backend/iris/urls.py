@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import PredictView
+from .views import IrisPredictView
+
 urlpatterns = [
-    path('predict/', PredictView.as_view(), name = "predict"),
+    path('predict/', IrisPredictView.as_view(), name='iris_predict'),
 ]
